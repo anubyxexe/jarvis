@@ -1,4 +1,5 @@
 #code avec le modele d'ia text-davinci-003 et le programme leo par anubyx comme modele
+version = 0.5
 
 #import
 import openai
@@ -7,8 +8,11 @@ import os
 import time
 import socket
 
-openai.api_key = "[open ai api key]"
+openai.api_key = "openia api key"
+context = "" #contexte de base
 
+
+cont = " " #variable
 #intro
 print(Fore.MAGENTA + "test de connexion...")
 time.sleep(0.5)
@@ -28,15 +32,22 @@ def logo():
     print("    |  |/ __ \|  | \/\   /|  |\___ \ ")
     print("/\__|  (____  /__|    \_/ |__/____  >")
     print("\______|    \/                    \/ ")
-    print("Assistant intelligent")
+    print("      Assistant intelligent V" + str(version))
     print()
 logo()
 
 #envoi de la requet
 def chat(prompt):
+
+    if(context == ""):
+        cont = " "
+    else:
+        cont = " contexte: mes precedent message son les suivant (dans l'ordre chronologique); " + context + ", mes precedent message n'affecte pas forcement la reponse qui suis. "
+
+
     completions = openai.Completion.create(
         engine="text-davinci-003",
-        prompt= "Identité : Tu es une intelligence artificielle nommée. \"jarvis\" en référence à l'assistant de Tony Stark dans le célèbre film Iron Man, Ton but est de m'assister dans ma vie quotidienne et tu as des connaissances infinies et tu excelles dans tous les domaines. Question : " + prompt + " . (et évite de répondre avec trop de mots)",
+        prompt= "Identité : Tu es une intelligence artificielle nommée. \"jarvis\" en référence à l'assistant de Tony Stark dans le célèbre film Iron Man, Ton but est de m'assister dans ma vie quotidienne et tu as des connaissances infinies et tu excelles dans tous les domaines, tu parle francais." + cont + "command: si tu souhaite effacer le terminal ou que je te demande de clear repond juste \"[clear]\", si je te demande de te réinitialiser ou d'effacer ta memoire repond juste \"[reset]\". Question : " + prompt + " . (et évite de répondre avec trop de mots)",
         max_tokens=1024,
         n=1,
         stop=None,
@@ -45,6 +56,8 @@ def chat(prompt):
 
     message = completions.choices[0].text
     return message
+
+    
 
 
 #input
@@ -55,5 +68,25 @@ while True:
         quit()
     else:
         response = chat(prompt)
-        print(Fore.GREEN + f"jarvis: {response}")
-        print()
+        
+        if("[Clear]" in response):
+            os.system('cls' if os.name=='nt' else 'clear')
+            logo()
+        elif("[Reset]" in response):
+            context = ""
+            print(Fore.MAGENTA + "Jarvis s'est réinitialisé.")
+        #a cause de ceratain bug
+        elif("[reset]" in response):
+            context = ""
+            print(Fore.MAGENTA + "Jarvis s'est réinitialisé.")
+        elif("[clear]" in response):
+            os.system('cls' if os.name=='nt' else 'clear')
+            logo()
+
+        else:
+            print(Fore.GREEN + f"jarvis: {response}")
+            print()
+            if(context == ""):
+                context = context + "\"" + prompt + "\""
+            else:
+                context = context + ", \"" + prompt + "\""
